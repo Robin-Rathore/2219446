@@ -1,5 +1,4 @@
-// File: frontend/src/App.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { Log, setAuthToken } from "../../logging-middleware/index.js";
 import {
@@ -10,10 +9,16 @@ import {
   Grid,
   Card,
   CardContent,
+  CardActions,
   Box,
+  Divider,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import LaunchIcon from "@mui/icons-material/Launch";
 
-setAuthToken("your-access-token"); // <- Replace with real token
+setAuthToken("your-access-token"); // Replace with real token
 
 interface ClickData {
   timestamp: string;
@@ -30,9 +35,7 @@ interface ShortURLStats {
 }
 
 function App() {
-  const [urls, setUrls] = useState([
-    { url: "", validity: "", shortcode: "" },
-  ]);
+  const [urls, setUrls] = useState([{ url: "", validity: "", shortcode: "" }]);
   const [results, setResults] = useState<any[]>([]);
   const [statistics, setStatistics] = useState<ShortURLStats[]>([]);
 
@@ -40,6 +43,10 @@ function App() {
     const updated = [...urls];
     updated[index][field] = value;
     setUrls(updated);
+  };
+
+  const handleAddInput = () => {
+    setUrls([...urls, { url: "", validity: "", shortcode: "" }]);
   };
 
   const handleShorten = async () => {
@@ -76,69 +83,121 @@ function App() {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        URL Shortener
+    <Container maxWidth="md" sx={{ mt: 5, mb: 5 }}>
+      <Typography variant="h4" gutterBottom textAlign="center">
+        🚀 URL Shortener Dashboard
       </Typography>
-      <Grid container spacing={2}>
-        {urls.map((entry, idx) => (
-          <Grid item xs={12} key={idx}>
-            <TextField
-              label="Long URL"
-              value={entry.url}
-              onChange={(e) => handleChange(idx, "url", e.target.value)}
-              fullWidth
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              label="Validity (min)"
-              value={entry.validity}
-              onChange={(e) => handleChange(idx, "validity", e.target.value)}
-              sx={{ mr: 1 }}
-            />
-            <TextField
-              label="Custom Shortcode"
-              value={entry.shortcode}
-              onChange={(e) => handleChange(idx, "shortcode", e.target.value)}
-            />
-          </Grid>
-        ))}
-      </Grid>
-      <Box sx={{ mt: 2 }}>
-        <Button variant="contained" onClick={handleShorten}>
-          Shorten URLs
-        </Button>
-        <Button variant="outlined" onClick={fetchStatistics} sx={{ ml: 2 }}>
-          Load Statistics
-        </Button>
-      </Box>
 
-      {results.map((r, idx) => (
-        <Card key={idx} sx={{ mt: 2 }}>
-          <CardContent>
-            <Typography>Original URL: {r.originalUrl}</Typography>
-            <Typography>Short Link: {r.shortLink}</Typography>
-            <Typography>Expires At: {r.expiry}</Typography>
-          </CardContent>
-        </Card>
-      ))}
-
-      {statistics.map((stat, idx) => (
-        <Card key={idx} sx={{ mt: 2 }}>
-          <CardContent>
-            <Typography variant="h6">Stats for: {stat.originalUrl}</Typography>
-            <Typography>Total Clicks: {stat.totalClicks}</Typography>
-            <Typography>Created At: {stat.createdAt}</Typography>
-            <Typography>Expires At: {stat.expiresAt}</Typography>
-            <Typography variant="subtitle1">Click Details:</Typography>
-            {stat.clicks.map((click, i) => (
-              <Box key={i} ml={2}>
-                <Typography>- {click.timestamp} | {click.referrer} | {click.location}</Typography>
-              </Box>
+      <Card variant="outlined" sx={{ p: 2, mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            🔗 Enter URLs to Shorten
+          </Typography>
+          <Grid container spacing={2}>
+            {urls.map((entry, idx) => (
+              <React.Fragment key={idx}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Long URL"
+                    value={entry.url}
+                    onChange={(e) => handleChange(idx, "url", e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={6} sm={2}>
+                  <TextField
+                    label="Validity (min)"
+                    value={entry.validity}
+                    onChange={(e) => handleChange(idx, "validity", e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={6} sm={4}>
+                  <TextField
+                    label="Custom Shortcode"
+                    value={entry.shortcode}
+                    onChange={(e) => handleChange(idx, "shortcode", e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+              </React.Fragment>
             ))}
-          </CardContent>
-        </Card>
-      ))}
+          </Grid>
+        </CardContent>
+        <CardActions>
+          <Button onClick={handleShorten} variant="contained" color="primary">
+            Shorten URLs
+          </Button>
+          <Button onClick={fetchStatistics} variant="outlined">
+            Load Statistics
+          </Button>
+          <Tooltip title="Add another URL">
+            <IconButton onClick={handleAddInput}>
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
+        </CardActions>
+      </Card>
+
+      {results.length > 0 && (
+        <>
+          <Typography variant="h5" gutterBottom>
+            🎉 Shortened Links
+          </Typography>
+          {results.map((r, idx) => (
+            <Card key={idx} sx={{ mb: 2, backgroundColor: "#f1f8e9" }}>
+              <CardContent>
+                <Typography><strong>Original URL:</strong> {r.originalUrl}</Typography>
+                <Typography>
+                  <strong>Short Link:</strong>{" "}
+                  <a href={r.shortLink} target="_blank" rel="noopener noreferrer">
+                    {r.shortLink} <LaunchIcon fontSize="small" />
+                  </a>
+                </Typography>
+                <Typography><strong>Expires At:</strong> {r.expiry}</Typography>
+              </CardContent>
+            </Card>
+          ))}
+        </>
+      )}
+
+      {statistics.length > 0 && (
+        <>
+          <Divider sx={{ my: 4 }} />
+          <Typography variant="h5" gutterBottom>
+            📊 Click Statistics
+          </Typography>
+          {statistics.map((stat, idx) => (
+            <Card key={idx} sx={{ mb: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  {stat.originalUrl}
+                </Typography>
+                <Typography>Total Clicks: {stat.totalClicks}</Typography>
+                <Typography>Created At: {new Date(stat.createdAt).toLocaleString()}</Typography>
+                <Typography>Expires At: {new Date(stat.expiresAt).toLocaleString()}</Typography>
+
+                <Typography variant="subtitle1" sx={{ mt: 2 }}>
+                  Click Details:
+                </Typography>
+                {stat.clicks.length > 0 ? (
+                  stat.clicks.map((click, i) => (
+                    <Box key={i} ml={2}>
+                      <Typography variant="body2">
+                        • {new Date(click.timestamp).toLocaleString()} | {click.referrer} | {click.location}
+                      </Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" ml={2} color="text.secondary">
+                    No click data yet.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </>
+      )}
     </Container>
   );
 }
