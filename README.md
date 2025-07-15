@@ -61,19 +61,7 @@ This uses `concurrently` to:
 * Start backend on: `http://localhost:8080`
 * Start frontend on: `http://localhost:3000`
 
----
-
-## 🔒 Auth Setup
-
-Set your **access token** using:
-
-```js
-setAuthToken("your-access-token");
-```
-
-This is used internally by the logging middleware.
-
----
+--
 
 
 * Tech stack decisions
